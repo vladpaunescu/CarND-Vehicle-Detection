@@ -58,6 +58,7 @@ def get_features():
             notcar_features = features['notcar_features']
         return car_features, notcar_features
 
+    # no cached features
     print("dataset reading")
     cars, notcars = data_look(cfg.CARS_DIR, cfg.NON_CARS_DIR)
     print("DONE dataset reading")

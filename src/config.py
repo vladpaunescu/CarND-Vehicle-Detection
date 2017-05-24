@@ -20,10 +20,10 @@ __C.ORIENT = 9
 __C.HOG_CHANNEL = "ALL"
 
 # use this for opencv reading
-__C.HOG_COLORSPACE = cv2.COLOR_BGR2YCrCb
+# __C.HOG_COLORSPACE = cv2.COLOR_BGR2YCrCb
 
 # use this for video reading frame by frame
-# __C.HOG_COLORSPACE = cv2.COLOR_BGRYCrCb
+__C.HOG_COLORSPACE = cv2.COLOR_RGB2YCrCb
 
 __C.SPATIAL_SIZE = (32, 32) # Spatial binning dimensions
 __C.HIST_BINS = 32    # Number of histogram bins
@@ -39,6 +39,11 @@ __C.FEATURES_BIN = "./features.pkl"
 __C.MODEL_BIN = "./model.pkl"
 
 __C.TEST_IMG_DIR = "./test_images"
+
+
+# video options
+__C.TEST_VIDEO = "./project_video.mp4"
+__C.OUT_VIDEO = "./detections_video.mp4"
 
 
 cfg = __C
