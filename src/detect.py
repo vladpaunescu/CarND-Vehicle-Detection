@@ -11,29 +11,11 @@ from features import get_features_for_image
 y_start_stop = [None, None] # Min and max in y to search in slide_window()
 
 
-color_space = 'RGB' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-orient = 9  # HOG orientations
-pix_per_cell = 8 # HOG pixels per cell
-cell_per_block = 2 # HOG cells per block
-hog_channel = 0 # Can be 0, 1, 2, or "ALL"
-spatial_size = (16, 16) # Spatial binning dimensions
-hist_bins = 16    # Number of histogram bins
-spatial_feat = True # Spatial features on or off
-hist_feat = True # Histogram features on or off
-hog_feat = True # HOG features on or off
-x_start_stop = [None, None]
-y_start_stop = [None, None] # Min and max in y to search in slide_window()
-
 DEBUG = False
 
 # Define a function you will pass an image
 # and the list of windows to be searched (output of slide_windows())
-def search_windows(img, windows, clf, scaler, color_space='RGB',
-                   spatial_size=(32, 32), hist_bins=32,
-                   hist_range=(0, 256), orient=9,
-                   pix_per_cell=8, cell_per_block=2,
-                   hog_channel=0, spatial_feat=True,
-                   hist_feat=True, hog_feat=True):
+def search_windows(img, windows, clf, scaler):
     # 1) Create an empty list to receive positive detection windows
     on_windows = []
     # 2) Iterate over all windows in the list
@@ -152,28 +134,25 @@ def detect(image, svc, X_scaler):
     # image you are searching is a .jpg (scaled 0 to 255)
     #image = image.astype(np.float32)/255
 
-    overlap = 0.9
+
     windows = []
 
-    windows += slide_window(image, x_start_stop=x_start_stop,
-                            y_start_stop=[380, 560], xy_window=(120, 96), xy_overlap=(overlap, overlap))
+    windows += slide_window(image, x_start_stop=cfg.X_START_STOP,
+                            y_start_stop=cfg.Y_START_STOP_FAR, xy_window=cfg.XY_WINDOW_FAR,
+                            xy_overlap=(cfg.OVERLAP, cfg.OVERLAP))
 
-    windows += slide_window(image, x_start_stop=x_start_stop,
-                            y_start_stop=[380, 650], xy_window=(280, 224), xy_overlap=(overlap, overlap))
+    windows += slide_window(image, x_start_stop=cfg.X_START_STOP,
+                            y_start_stop=cfg.Y_START_STOP_NEAR, xy_window=cfg.XY_WINDOW_NEAR,
+                            xy_overlap=(cfg.OVERLAP, cfg.OVERLAP))
 
-    hot_windows = search_windows(image, windows, svc, X_scaler, color_space=cfg.HOG_COLORSPACE,
-                            spatial_size=spatial_size, hist_bins=hist_bins,
-                            orient=orient, pix_per_cell=pix_per_cell,
-                            cell_per_block=cell_per_block,
-                            hog_channel=hog_channel, spatial_feat=spatial_feat,
-                            hist_feat=hist_feat, hog_feat=hog_feat)
+    hot_windows = search_windows(image, windows, svc, X_scaler)
 
     heat = np.zeros_like(image[:, :, 0]).astype(np.float)
     # Add heat to each box in box list
     heat = add_heat(heat, hot_windows)
 
     # Apply threshold to help remove false positives
-    heat = apply_threshold(heat, 2)
+    heat = apply_threshold(heat, cfg.DET_THRESHOLD)
 
     # Visualize the heatmap when displaying
     heatmap = np.clip(heat, 0, 255)
@@ -184,12 +163,10 @@ def detect(image, svc, X_scaler):
 
     # plt.imshow(labels[0], cmap='gray')
 
-
-
     draw_img = draw_labeled_bboxes(np.copy(image), labels)
 
     det_img = draw_boxes(draw_image, hot_windows, color=(0, 0, 255), thick=6)
-    window_img = draw_boxes(draw_image, windows, color=(0, 0, 255), thick=6)
+    # window_img = draw_boxes(draw_image, windows, color=(0, 0, 255), thick=6)
 
     # fig = plt.figure()
     # plt.subplot(121)
@@ -199,9 +176,12 @@ def detect(image, svc, X_scaler):
     # plt.subplot(122)
     # plt.imshow(heatmap, cmap='hot')
     # plt.title('Heat Map')
+
+    # plt.imshow(labels[0], cmap='gray')
+    # plt.title('Labels')
     # fig.tight_layout()
 
-    # cv2.imwrite("search_windows.png", window_img)
+    # cv2.imwrite("search_windows_all.png", window_img)
     # cv2.imwrite("detections.png", det_img)
 
     return draw_img
@@ -214,16 +194,19 @@ def load_model():
     return model['svc'], model['X_scaler']
 
 # img_fname = "bbox-example-image.jpg"
-img_fname = "test1.jpg"
+img_fname = ["test1.jpg"]
 
 if __name__ == "__main__":
 
     # plt.interactive(False)
     svc, X_scaler = load_model()
 
-    test_img = cv2.imread(os.path.join(cfg.TEST_IMG_DIR, img_fname))
-    detect(image=test_img, svc=svc, X_scaler=X_scaler)
+    imgs = os.listdir(cfg.TEST_DIR)
+    print("Loaded test images {}".format(imgs))
 
-    # plt.show()
+    for img_path in imgs:
+        img = cv2.imread(os.path.join(cfg.TEST_DIR, img_path))
+        detect(image=img, svc=svc, X_scaler=X_scaler)
+        plt.show()
 
 

@@ -6,6 +6,10 @@ import time
 import pickle
 import os
 
+
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+
 from config import cfg
 from dataset import data_look
 
@@ -14,11 +18,16 @@ def transform_colorspace(img, cspace=cv2.COLOR_RGB2YCrCb):
     return cv2.cvtColor(img, cspace)
 
 
-def bin_spatial(img, size=(32, 32)):
+def bin_spatial(img, size=(32, 32), visualize=False):
     color1 = cv2.resize(img[:, :, 0], size).ravel()
     color2 = cv2.resize(img[:, :, 1], size).ravel()
     color3 = cv2.resize(img[:, :, 2], size).ravel()
-    return np.hstack((color1, color2, color3))
+    if not visualize:
+        return np.hstack((color1, color2, color3))
+
+    return np.hstack((color1, color2, color3)), cv2.merge((color1.reshape((32,32)),
+                                                          color2.reshape((32,32)),
+                                                          color3.reshape((32,32))))
 
 
 def color_hist(img, nbins=32, bins_range=(0, 256)):
@@ -29,7 +38,9 @@ def color_hist(img, nbins=32, bins_range=(0, 256)):
     # Concatenate the histograms into a single feature vector
     hist_features = np.concatenate((channel1_hist[0], channel2_hist[0], channel3_hist[0]))
     # Return the individual histograms, bin_centers and feature vector
+
     return hist_features
+
 
 # Define a function to return HOG features and visualization
 def get_hog_features(img, orient, pix_per_cell, cell_per_block,
@@ -102,16 +113,74 @@ def extract_features(imgs):
 
     return features
 
-def visualize_sample_hog():
-    pass
+def visualize_sample_hog(img, hog_channel=0):
+    feat_img = transform_colorspace(img, cfg.HOG_COLORSPACE)
 
+    hog_features, hog_image = get_hog_features(feat_img[:, :, hog_channel], orient=cfg.ORIENT,
+                                    pix_per_cell=cfg.PIX_PER_CELL,
+                                    cell_per_block=cfg.CELL_PER_BLOCK, vis=True, feature_vec=True)
 
+    return feat_img[:, :, hog_channel], hog_image
 
 
 if __name__ == "__main__":
+    # cars, notcars = data_look(cfg.CARS_DIR, cfg.NON_CARS_DIR)
+    # t = time.time()
+    # car_features = extract_features(cars)
+    # notcar_features = extract_features(notcars)
+    # t2 = time.time()
+    # print(round(t2 - t, 2), 'Seconds to extract HOG features...')
+
     cars, notcars = data_look(cfg.CARS_DIR, cfg.NON_CARS_DIR)
-    t = time.time()
-    car_features = extract_features(cars)
-    notcar_features = extract_features(notcars)
-    t2 = time.time()
-    print(round(t2 - t, 2), 'Seconds to extract HOG features...')
+    # plot 2 samples
+    car_ind = np.random.randint(0, len(cars))
+    notcar_ind = np.random.randint(0, len(notcars))
+
+    # Read in car / not-car images
+    car_image = cv2.imread(cars[car_ind])
+    notcar_image = cv2.imread(notcars[notcar_ind])
+
+# hog printing
+
+    channels_count = 3
+    colorspace = ['Y', 'Cr', 'Cb']
+
+    # for ch in range(channels_count):
+    #     # feat_img, hog_image = visualize_sample_hog(car_image, hog_channel=ch)
+    #     feat_img, hog_image = visualize_sample_hog(notcar_image, hog_channel=ch)
+    #     # Plot the examples
+    #     fig = plt.figure()
+    #     plt.subplot(121)
+    #     plt.imshow(feat_img)
+    #     plt.title('Not Car Image. {} channel'.format(colorspace[ch]))
+    #     plt.subplot(122)
+    #     plt.imshow(hog_image)
+    #     plt.title('Not Car HOG. {} channel'.format(colorspace[ch]))
+    #
+    #     plt.show()
+
+# spatial binning printing
+
+    # spatial_binned_feats, spatial_binned_img = bin_spatial(car_image, size=(32, 32), visualize=True)
+    # fig = plt.figure()
+    # plt.subplot(121)
+    # plt.title('Car Image')
+    # plt.imshow(car_image)
+    # plt.subplot(122)
+    # plt.title('Spatial Binned Car Image')
+    # plt.imshow(spatial_binned_img)
+    # plt.show()
+
+# color histogram printing
+    car_imgycrcb = transform_colorspace(notcar_image, cspace=cv2.COLOR_BGR2YCrCb)
+    bin_size = int(256/32)
+    for ch in range(channels_count):
+        fig = plt.figure()
+        plt.subplot(121)
+        plt.title('Not Car {} channel'.format(colorspace[ch]))
+        plt.imshow(car_imgycrcb[:, :, ch])
+        plt.subplot(122)
+        plt.title('Not car {} histogram'.format(colorspace[ch]))
+        plt.hist(car_imgycrcb[:, :, ch], bins=range(0, 256, bin_size))
+
+        plt.show()
