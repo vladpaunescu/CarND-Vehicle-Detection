@@ -67,18 +67,18 @@ The goals / steps of this project are the following:
 
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
-###Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
+### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
 
 ---
 ### Writeup / README
 
-####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Vehicle-Detection/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
+#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Vehicle-Detection/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
 
 You're reading it!
 
 ### Histogram of Oriented Gradients (HOG)
 
-####1. Explain how (and identify where in your code) you extracted HOG features from the training images.
+#### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
 The code for this step is contained in the `features.py` file, in method ```get_hog_features()```.   
 
@@ -105,7 +105,7 @@ Here is e negative example of a random image that is not a car:
 
 We can notice that the meaninguful information (at least for the human eye - for detecting shapes) resides in the Y channel.
 
-####2. Explain how you settled on your final choice of HOG parameters.
+#### 2. Explain how you settled on your final choice of HOG parameters.
 
 I decided to use ```YCrCb``` for the reason it separates the luminance channel, and yields better quality for the HOG descriptor computed on Y channel.
 
@@ -226,7 +226,7 @@ In fact I only searched the bottom right of the image.
 
 The far objects are searched in the area of ```y = (380, 550)```., and with a detection window of ```(120, 96)```.
 
-The far objects are searched in the area of ```y = (380, 550)```., and with a detection window of ```(280, 224)```.
+The near objects are searched in the area of ```y = (380, 650)```., and with a detection window of ```(280, 224)```.
 
 The overlap is 0.9.
 
@@ -252,7 +252,7 @@ Combined search windows on the bottom right side, overlap 0.9:
 ![alt text][image19]
 
 
-####2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
+#### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
 The detection without any form of thersholding yilded many detections, and a couple of false positives. Here is a result of multiple detections, and false positives:
 
